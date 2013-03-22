@@ -1,3 +1,4 @@
-# 0.1.0 (March 21, 2013)
+# 0.1.0 (unreleased)
 
+* Exclude the ".vagrant" directory from rsync.
 * Initial release.
