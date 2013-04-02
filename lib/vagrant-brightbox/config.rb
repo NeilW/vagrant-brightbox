@@ -1,91 +1,104 @@
 require "vagrant"
 
 module VagrantPlugins
-  module AWS
+  module Brightbox
     class Config < Vagrant.plugin("2", :config)
-      # The access key ID for accessing AWS.
+      # The API Client ID for accessing Brightbox.
       #
       # @return [String]
-      attr_accessor :access_key_id
+      attr_accessor :client_id
 
-      # The ID of the AMI to use.
+      # The secret access key for accessing Brightbox.
       #
       # @return [String]
-      attr_accessor :ami
+      attr_accessor :secret
 
-      # The availability zone to launch the instance into. If nil, it will
+      # The URL to use as the API endpoint
+      #
+      # @return [String]
+      attr_accessor :api_url
+
+      # The URL to use as the API authentication endpoint
+      #
+      # @return [String]
+      attr_accessor :auth_url
+
+      # Email or user id for user based authentication
+      #
+      # @return [String]
+      attr_accessor :username
+
+      # Password for user based authentication
+      #
+      # @return [String]
+      attr_accessor :password
+
+      # The account id of the account on which operations should be performed
+      # 
+      # @return [String]
+      attr_accessor :account
+
+
+      # The ID of the Image to use.
+      #
+      # @return [String]
+      attr_accessor :image_id
+
+      # The zone to launch the server into. If nil, it will
       # use the default for your account.
       #
       # @return [String]
-      attr_accessor :availability_zone
+      attr_accessor :zone
 
-      # The type of instance to launch, such as "m1.small"
+      # The type of server to launch, such as "nano"
       #
       # @return [String]
-      attr_accessor :instance_type
+      attr_accessor :server_type
 
-      # The name of the keypair to use.
-      #
-      # @return [String]
-      attr_accessor :keypair_name
+      # The name of the server. This defaults to the name of the machine
+      # defined by Vagrant (via `config.vm.define`), but can be overriden
+      # here.
+      attr_accessor :server_name
 
-      # The private IP address to give this machine (VPC).
-      #
-      # @return [String]
-      attr_accessor :private_ip_address
-
-      # The name of the AWS region in which to create the instance.
+      # The name of the Brightbox region in which to create the server.
       #
       # @return [String]
       attr_accessor :region
 
-      # The secret access key for accessing AWS.
-      #
-      # @return [String]
-      attr_accessor :secret_access_key
-
-      # The security groups to set on the instance. For VPC this must
-      # be a list of IDs. For EC2, it can be either.
+      # The server groups to set on the server. This must
+      # be a list of group IDs.
       #
       # @return [Array<String>]
-      attr_accessor :security_groups
+      attr_accessor :server_groups
 
-      # The path to the SSH private key to use with this EC2 instance.
+      # The path to the SSH private key to use with this server.
       # This overrides the `config.ssh.private_key_path` variable.
       #
       # @return [String]
       attr_accessor :ssh_private_key_path
 
-      # The SSH username to use with this EC2 instance. This overrides
+      # The SSH username to use with this server. This overrides
       # the `config.ssh.username` variable.
       #
       # @return [String]
       attr_accessor :ssh_username
 
-      # The subnet ID to launch the machine into (VPC).
-      #
-      # @return [String]
-      attr_accessor :subnet_id
-
-      # The tags for the machine.
-      #
-      # @return [Hash<String, String>]
-      attr_accessor :tags
-
       def initialize(region_specific=false)
-        @access_key_id      = UNSET_VALUE
-        @ami                = UNSET_VALUE
-        @availability_zone  = UNSET_VALUE
-        @instance_type      = UNSET_VALUE
-        @keypair_name       = UNSET_VALUE
-        @private_ip_address = UNSET_VALUE
+        @client_id      = UNSET_VALUE
+        @secret  = UNSET_VALUE
+        @api_url  = UNSET_VALUE
+        @auth_url  = UNSET_VALUE
+        @username  = UNSET_VALUE
+        @password  = UNSET_VALUE
+        @account  = UNSET_VALUE
+        @image_id                = UNSET_VALUE
+        @zone  = UNSET_VALUE
+        @server_type      = UNSET_VALUE
+	@server_name	  = UNSET_VALUE
         @region             = UNSET_VALUE
-        @secret_access_key  = UNSET_VALUE
-        @security_groups    = UNSET_VALUE
+        @server_groups    = UNSET_VALUE
         @ssh_private_key_path = UNSET_VALUE
         @ssh_username       = UNSET_VALUE
-        @subnet_id          = UNSET_VALUE
-        @tags               = {}
 
         # Internal state (prefix with __ so they aren't automatically
         # merged)
@@ -97,17 +110,16 @@ module VagrantPlugins
 
       # Allows region-specific overrides of any of the settings on this
       # configuration object. This allows the user to override things like
-      # AMI and keypair name for regions. Example:
+      # Image and keypair name for regions. Example:
       #
-      #     aws.region_config "us-east-1" do |region|
-      #       region.ami = "ami-12345678"
-      #       region.keypair_name = "company-east"
+      #     brightbox.region_config "gb1" do |region|
+      #       region.image_id = "img-umqoe"
       #     end
       #
       # @param [String] region The region name to configure.
       # @param [Hash] attributes Direct attributes to set on the configuration
       #   as a shortcut instead of specifying a full block.
-      # @yield [config] Yields a new AWS configuration.
+      # @yield [config] Yields a new Brightbox configuration.
       def region_config(region, attributes=nil, &block)
         # Append the block to the list of region configs for that region.
         # We'll evaluate these upon finalization.
@@ -149,44 +161,34 @@ module VagrantPlugins
           # Set it
           result.instance_variable_set(:@__region_config, new_region_config)
 
-          # Merge in the tags
-          result.tags.merge!(self.tags)
-          result.tags.merge!(other.tags)
         end
       end
 
       def finalize!
-        # The access keys default to nil
-        @access_key_id     = nil if @access_key_id     == UNSET_VALUE
-        @secret_access_key = nil if @secret_access_key == UNSET_VALUE
+        # Default region is UK gb1. Because that's all there is at the moment!
+        @region = "gb1" if @region == UNSET_VALUE
 
-        # AMI must be nil, since we can't default that
-        @ami = nil if @ami == UNSET_VALUE
+        # The server groups are empty by default.
+        @server_groups = [] if @server_groups == UNSET_VALUE
 
-        # Default instance type is an m1.small
-        @instance_type = "m1.small" if @instance_type == UNSET_VALUE
+        # Everything defaults to nil
+        @client_id     = nil if @client_id     == UNSET_VALUE
+        @secret = nil if @secret == UNSET_VALUE
+        @auth_url = nil if @auth_url == UNSET_VALUE
+        @api_url = nil if @api_url == UNSET_VALUE
+        @username = nil if @username == UNSET_VALUE
+        @password = nil if @password == UNSET_VALUE
+        @account = nil if @account == UNSET_VALUE
+        @image_id = nil if @image_id == UNSET_VALUE
+        @server_type = nil if @server_type == UNSET_VALUE
+        @server_name = nil if @server_name == UNSET_VALUE
+        @zone = nil if @zone == UNSET_VALUE
 
-        # Keypair defaults to nil
-        @keypair_name = nil if @keypair_name == UNSET_VALUE
-
-        # Default the private IP to nil since VPC is not default
-        @private_ip_address = nil if @private_ip_address == UNSET_VALUE
-
-        # Default region is us-east-1. This is sensible because AWS
-        # generally defaults to this as well.
-        @region = "us-east-1" if @region == UNSET_VALUE
-        @availability_zone = nil if @availability_zone == UNSET_VALUE
-
-        # The security groups are empty by default.
-        @security_groups = [] if @security_groups == UNSET_VALUE
 
         # The SSH values by default are nil, and the top-level config
         # `config.ssh` values are used.
         @ssh_private_key_path = nil if @ssh_private_key_path == UNSET_VALUE
         @ssh_username = nil if @ssh_username == UNSET_VALUE
-
-        # Subnet is nil by default otherwise we'd launch into VPC.
-        @subnet_id = nil if @subnet_id == UNSET_VALUE
 
         # Compile our region specific configurations only within
         # NON-REGION-SPECIFIC configurations.
@@ -216,26 +218,25 @@ module VagrantPlugins
       def validate(machine)
         errors = []
 
-        errors << I18n.t("vagrant_aws.config.region_required") if @region.nil?
+        errors << I18n.t("vagrant_brightbox.config.region_required") if @region.nil?
 
         if @region
           # Get the configuration for the region we're using and validate only
           # that region.
           config = get_region_config(@region)
 
-          errors << I18n.t("vagrant_aws.config.access_key_id_required") if \
-            config.access_key_id.nil?
-          errors << I18n.t("vagrant_aws.config.secret_access_key_required") if \
-            config.secret_access_key.nil?
-          errors << I18n.t("vagrant_aws.config.ami_required") if config.ami.nil?
+          errors << I18n.t("vagrant_brightbox.config.client_id_required") if \
+            config.client_id.nil?
+          errors << I18n.t("vagrant_brightbox.config.secret_required") if \
+            config.secret.nil?
 
           if config.ssh_private_key_path && \
             !File.file?(File.expand_path(config.ssh_private_key_path, machine.env.root_path))
-            errors << I18n.t("vagrant_aws.config.private_key_missing")
+            errors << I18n.t("vagrant_brightbox.config.private_key_missing")
           end
         end
 
-        { "AWS Provider" => errors }
+        { "Brightbox Provider" => errors }
       end
 
       # This gets the configuration for a specific region. It shouldn't

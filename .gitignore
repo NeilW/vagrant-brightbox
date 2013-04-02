@@ -11,4 +11,5 @@ Gemfile.lock
 # Vagrant
 .vagrant
 Vagrantfile
+manifests/*
 !example_box/Vagrantfile

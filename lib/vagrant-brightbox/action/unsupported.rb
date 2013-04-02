@@ -1,16 +1,18 @@
 module VagrantPlugins
-  module AWS
+  module Brightbox
     module Action
-      class MessageAlreadyCreated
+      class Unsupported
         def initialize(app, env)
           @app = app
         end
 
         def call(env)
-          env[:ui].info(I18n.t("vagrant_aws.already_created"))
+	  env[:ui].warn(I18n.t("vagrant_brightbox.unsupported"))
+
           @app.call(env)
         end
       end
     end
   end
 end
+

@@ -1,7 +1,7 @@
-require "vagrant-aws/util/timer"
+require "vagrant-brightbox/util/timer"
 
 module VagrantPlugins
-  module AWS
+  module Brightbox
     module Action
       # This is the same as the builtin provision except it times the
       # provisioner runs.

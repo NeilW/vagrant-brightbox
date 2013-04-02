@@ -1,52 +1,55 @@
 en:
-  vagrant_aws:
+  vagrant_brightbox:
     already_created: |-
-      The machine is already created.
-    launching_instance: |-
-      Launching an instance with the following settings...
-    launch_no_keypair: |-
-      Warning! You didn't specify a keypair to launch your instance with.
-      This can sometimes result in not being able to access your instance.
-    launch_vpc_warning: |-
-      Warning! You're launching this instance into a VPC without an
-      elastic IP. Please verify you're properly connected to a VPN so
-      you can access this machine, otherwise Vagrant will not be able
-      to SSH into it.
+      The server is already created.
+    deleting_server: |-
+      Deleting server...
+    finding_image: |-
+      Finding image for server...
+    launching_server: |-
+      Launching a server with the following settings...
     not_created: |-
-      Instance is not created. Please run `vagrant up` first.
+      The server hasn't been created yet. Run `vagrant up` first.
     ready: |-
-      Machine is booted and ready for use!
+      The server is ready!
     rsync_folder: |-
       Rsyncing folder: %{hostpath} => %{guestpath}
-    terminating: |-
-      Terminating the instance...
-    waiting_for_ready: |-
-      Waiting for instance to become "ready"...
+    waiting_for_build: |-
+      Waiting for the server to be built...
     waiting_for_ssh: |-
       Waiting for SSH to become available...
-    warn_networks: |-
-      Warning! The AWS provider doesn't support any of the Vagrant
-      high-level network configurations (`config.vm.network`). They
-      will be silently ignored.
+    mapped_cloud_ip: |-
+      Mapped IPv4 Cloud IP '%{cloud_ip}' to server '%{server}'
+    starting_server: |-
+      Starting server...
+    stopping_server: |-
+      Stopping server...
+    unsupported: |-
+      This command is not supported on the Brightbox Provider
 
     config:
-      access_key_id_required: |-
-        An access key ID must be specified via "access_key_id"
-      ami_required: |-
-        An AMI must be configured via "ami"
+      api_key_required: |-
+        An API key is required.
       private_key_missing: |-
-        The specified private key for AWS could not be found
-      region_required: |-
-        A region must be specified via "region"
-      secret_access_key_required: |-
-        A secret access key is required via "secret_access_key"
+        The specified private key for Brightbox cloud could not be found
+      public_key_not_found: |-
+        The public key file could not be found. Please make sure
+        you specified a valid path.
+      username_required: |-
+        A username is required.
 
     errors:
-      fog_error: |-
-        There was an error talking to AWS. The error message is shown
-        below:
-
-        %{message}
+      no_free_cloud_ip: |-
+        Warning! Unable to find a free cloup ip from your allocation. IPv4
+        public network access will not be available.
+      create_bad_state: |-
+        While creating the server, it transitioned to an unexpected
+        state: '%{state}', instead of properly booting. Run `vagrant status`
+        to find out what can be done about this state, or `vagrant destroy`
+        if you want to start over.
+      no_matching_image: |-
+        No matching image was found! Please check your image setting to
+        make sure you have a valid image chosen.
       rsync_error: |-
         There was an error when attemping to rsync a share folder.
         Please inspect the error message below for more info.
@@ -56,13 +59,20 @@ en:
         Error: %{stderr}
 
     states:
+      short_active: |-
+        active
+      long_active: |-
+        The server is up and running. Run `vagrant ssh` to access it.
+      short_inactive: |-
+        inactive
+      long_inactive: |-
+        The server has been created but is offline. Run `vagrant up` to restart.
+      short_creating: |-
+        creating
+      long_creating: |-
+        The server is currently being built. You must wait for this to
+        complete before you can access it or destroy it
       short_not_created: |-
         not created
       long_not_created: |-
-        The EC2 instance is not created. Run `vagrant up` to create it.
-
-      short_running: |-
-        running
-      long_running: |-
-        The EC2 instance is running. To stop this machine, you can run
-        `vagrant halt`. To destroy the machine, you can run `vagrant destroy`.
+        The server is not created. Run `vagrant up` to create it.

@@ -1,30 +1,30 @@
 begin
   require "vagrant"
 rescue LoadError
-  raise "The Vagrant AWS plugin must be run within Vagrant."
+  raise "The Vagrant Brightbox plugin must be run within Vagrant."
 end
 
 # This is a sanity check to make sure no one is attempting to install
 # this into an early Vagrant version.
 if Vagrant::VERSION < "1.1.0"
-  raise "The Vagrant AWS plugin is only compatible with Vagrant 1.1+"
+  raise "The Vagrant Brightbox plugin is only compatible with Vagrant 1.1+"
 end
 
 module VagrantPlugins
-  module AWS
+  module Brightbox
     class Plugin < Vagrant.plugin("2")
-      name "AWS"
+      name "Brightbox"
       description <<-DESC
       This plugin installs a provider that allows Vagrant to manage
-      machines in AWS (EC2/VPC).
+      servers in the Brightbox Cloud
       DESC
 
-      config(:aws, :provider) do
+      config(:brightbox, :provider) do
         require_relative "config"
         Config
       end
 
-      provider(:aws) do
+      provider(:brightbox) do
         # Setup logging and i18n
         setup_logging
         setup_i18n
@@ -36,7 +36,7 @@ module VagrantPlugins
 
       # This initializes the internationalization strings.
       def self.setup_i18n
-        I18n.load_path << File.expand_path("locales/en.yml", AWS.source_root)
+        I18n.load_path << File.expand_path("locales/en.yml", Brightbox.source_root)
         I18n.reload!
       end
 
@@ -62,7 +62,7 @@ module VagrantPlugins
         # Set the logging level on all "vagrant" namespaced
         # logs as long as we have a valid level.
         if level
-          logger = Log4r::Logger.new("vagrant_aws")
+          logger = Log4r::Logger.new("vagrant_brightbox")
           logger.outputters = Log4r::Outputter.stderr
           logger.level = level
           logger = nil

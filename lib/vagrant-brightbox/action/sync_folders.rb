@@ -3,14 +3,14 @@ require "log4r"
 require "vagrant/util/subprocess"
 
 module VagrantPlugins
-  module AWS
+  module Brightbox
     module Action
       # This middleware uses `rsync` to sync the folders over to the
-      # AWS instance.
+      # Brightbox server.
       class SyncFolders
         def initialize(app, env)
           @app    = app
-          @logger = Log4r::Logger.new("vagrant_aws::action::sync_folders")
+          @logger = Log4r::Logger.new("vagrant_brightbox::action::sync_folders")
         end
 
         def call(env)
@@ -26,7 +26,7 @@ module VagrantPlugins
             # avoid creating an additional directory with rsync
             hostpath = "#{hostpath}/" if hostpath !~ /\/$/
 
-            env[:ui].info(I18n.t("vagrant_aws.rsync_folder",
+            env[:ui].info(I18n.t("vagrant_brightbox.rsync_folder",
                                 :hostpath => hostpath,
                                 :guestpath => guestpath))
 
@@ -38,7 +38,7 @@ module VagrantPlugins
             # Rsync over to the guest path using the SSH info
             command = [
               "rsync", "--verbose", "--archive", "-z",
-              "-e", "ssh -p #{ssh_info[:port]} -i '#{ssh_info[:private_key_path]}'",
+              "-e", "ssh -p #{ssh_info[:port]} -o 'StrictHostKeyChecking no' -i '#{ssh_info[:private_key_path]}'",
               hostpath,
               "#{ssh_info[:username]}@#{ssh_info[:host]}:#{guestpath}"]
 
