@@ -71,6 +71,16 @@ Note that normally a lot of this boilerplate is encoded within the box
 file, but the box file used for the quick start, the "dummy" box, has
 no preconfigured defaults.
 
+Instead of having to add our client credentials to each Vagrantfile
+we can put them in the Fog configuration file. Create a new
+file at `~/.fog` and add the following:
+
+```
+:default:
+  :brightbox_client_id: "your_api_client_id"
+  :brightbox_secret: "your_secret"
+```
+
 ## Box Format
 
 Every provider in Vagrant must introduce a custom box format. This

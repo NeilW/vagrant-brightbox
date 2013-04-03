@@ -220,15 +220,20 @@ module VagrantPlugins
 
         errors << I18n.t("vagrant_brightbox.config.region_required") if @region.nil?
 
-        if @region
+	errors << I18n.t("vagrant_brightbox.config.region_invalid") unless valid_region?
+
+        if @region && valid_region?
           # Get the configuration for the region we're using and validate only
           # that region.
           config = get_region_config(@region)
 
-          errors << I18n.t("vagrant_brightbox.config.client_id_required") if \
-            config.client_id.nil?
-          errors << I18n.t("vagrant_brightbox.config.secret_required") if \
-            config.secret.nil?
+	  # Secret could be in fog config file. 
+	  unless fog_config_file_exists?
+	    errors << I18n.t("vagrant_brightbox.config.client_id_required") if \
+	      config.client_id.nil?
+	    errors << I18n.t("vagrant_brightbox.config.secret_required") if \
+	      config.secret.nil?
+	  end
 
           if config.ssh_private_key_path && \
             !File.file?(File.expand_path(config.ssh_private_key_path, machine.env.root_path))
@@ -237,6 +242,15 @@ module VagrantPlugins
         end
 
         { "Brightbox Provider" => errors }
+      end
+
+      def fog_config_file_exists?
+        File.file?(File.join(ENV['HOME'], '.fog'))
+      end
+
+      def valid_region?
+        return false unless @region =~ /gb1/
+	@region == 'gb1' || !(@auth_url.nil? || @api_url.nil?)
       end
 
       # This gets the configuration for a specific region. It shouldn't

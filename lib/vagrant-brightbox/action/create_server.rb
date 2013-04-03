@@ -53,8 +53,8 @@ module VagrantPlugins
             end
 
             server = env[:brightbox_compute].servers.create(options)
-          rescue Fog::Compute::Brightbox::Error => e
-            raise Errors::FogError, :message => e.message
+          rescue Excon::Errors::HTTPStatusError => e
+            raise Errors::FogError, :message => e.response
           end
 
           # Immediately save the ID since it is created at this point.
@@ -82,7 +82,7 @@ module VagrantPlugins
               while true
                 # If we're interrupted then just back out
                 break if env[:interrupted]
-                break if env[:machine].communicate.ready?
+                break if ready?(env[:machine])
                 sleep 2
               end
             end
@@ -97,6 +97,23 @@ module VagrantPlugins
           terminate(env) if env[:interrupted]
 
         end
+
+	# Check if machine is ready, trapping only non-fatal errors
+	def ready?(machine)
+	  @logger.info("Checking if SSH is ready or is permanently broken...")
+	  @logger.info("Connecting as '#{machine.ssh_info[:username]}'") if machine.ssh_info[:username]
+	  # Yes this is cheating.
+	  machine.communicate.send(:connect)
+	  @logger.info("SSH is ready")
+	  true
+	# Fatal errors
+	rescue Vagrant::Errors::SSHAuthenticationFailed
+	  raise
+	# Transient errors
+	rescue Vagrant::Errors::VagrantError => e
+	  @logger.info("SSH not up: #{e.inspect}")
+	  return false
+	end
 
         def recover(env)
           return if env["vagrant.error"].is_a?(Vagrant::Errors::VagrantError)

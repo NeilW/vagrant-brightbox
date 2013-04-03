@@ -28,7 +28,8 @@ module VagrantPlugins
 	  api_url       = region_config.api_url
 
           @logger.info("Connecting to Brightbox...")
-          env[:brightbox_compute] = Fog::Compute.new({
+	  @logger.info("Fog credentials are: #{Fog.credentials.inspect}")
+	  fog_options={
             :provider => :brightbox,
 	    :brightbox_auth_url => auth_url,
 	    :brightbox_api_url => api_url,
@@ -37,9 +38,14 @@ module VagrantPlugins
 	    :brightbox_username => username,
 	    :brightbox_password => password,
 	    :brightbox_account => account,
-          })
+          }
+	  fog_options.delete_if {|k, v| v.nil? }
+	  @logger.info("Fog compute options are: #{fog_options.inspect}")
+          env[:brightbox_compute] = Fog::Compute.new(fog_options)
 
           @app.call(env)
+	rescue ArgumentError => e
+	  raise Errors::FogError, :message => e.message
         end
       end
     end
