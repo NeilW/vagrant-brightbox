@@ -2,7 +2,7 @@
 
 This is a [Vagrant](http://www.vagrantup.com) 1.1+ plugin that adds a [Brightbox](http://brightbox.com/)
 provider to Vagrant, allowing Vagrant to control and provision servers in
-the Brightbox Cloud
+the Brightbox Cloud.
 
 **Note:** This plugin requires Vagrant 1.1+,
 
@@ -28,23 +28,44 @@ $ vagrant up --provider=brightbox
 ...
 ```
 
-Of course prior to doing this, you'll need to obtain an Brightbox-compatible
+Of course prior to doing this, you'll need to obtain a Brightbox-compatible
 box file for Vagrant.
 
 ## Quick Start
 
-After installing the plugin (instructions above), the quickest way to get
-started is to actually use a dummy Brightbox box and specify all the details
-manually within a `config.vm.provider` block. So first, add the dummy
-box using any name you want:
+After installing the plugin (instructions above), select the Brightbox
+Cloud image you want to use and note the id.  You can find these using
+the Brightbox CLI or the Cloud GUI in the normal way, or you can view the
+[Vagrant image page](http://docs.brightbox.com/vagrant/images).
+
+Then add your chosen box to your vagrant installation using the
+`config.vm.box` tag from your Vagrantfile, e.g.
 
 ```
-$ vagrant box add dummy https://github.com/NeilW/vagrant-brightbox/raw/master/dummy.box
-...
+$ vagrant box add precise32 http://docs.brightbox.com/vagrant/img-mvunm.box
 ```
 
-And then make a Vagrantfile that looks like the following, filling in
-your information where necessary.
+If you have your `~/.fog` setup to access Brightbox then you can now
+bring up your configuration on Brightbox Cloud with:
+
+```
+$ vagrant up --provider=brightbox
+```
+
+## Generic Setup
+
+If you don't want to be adding new box files for every type of image on
+Brightbox Cloud you can shift the configuration into the Vagrantfile by
+using the `dummy.box` Vagrant box file which has no preconfigured defaults.
+
+First add the dummy box to your vagrant installation.
+
+```
+$ vagrant box add dummy http://docs.brightbox.com/vagrant/dummy.box
+```
+
+Then make a Vagrantfile that looks like the following, filling in
+your information where necessary along with your choice of image id
 
 ```ruby
 Vagrant.configure("2") do |config|
@@ -61,17 +82,13 @@ Vagrant.configure("2") do |config|
 end
 ```
 
-And then run `vagrant up --provider=brightbox`.
+Finally run `vagrant up --provider=brightbox` to build your setup on Brightbox Cloud.
 
 This will start an Ubuntu 12.04 server in the gb1 region within
 your account. And assuming your SSH information was filled in properly
 within your Vagrantfile, SSH and provisioning will work as well.
 
-Note that normally a lot of this boilerplate is encoded within the box
-file, but the box file used for the quick start, the "dummy" box, has
-no preconfigured defaults.
-
-Instead of having to add our client credentials to each Vagrantfile
+Instead of having to add your client credentials to each Vagrantfile
 we can put them in the Fog configuration file. Create a new
 file at `~/.fog` and add the following:
 
@@ -86,11 +103,18 @@ file at `~/.fog` and add the following:
 Every provider in Vagrant must introduce a custom box format. This
 provider introduces `brightbox` boxes. You can view an example box in
 the [example_box/ directory](https://github.com/NeilW/vagrant-brightbox/tree/master/example_box).
+
 That directory also contains instructions on how to build a box.
 
-The box format is basically just the required `metadata.json` file
+The box format is the required `metadata.json` file
 along with a `Vagrantfile` that does default settings for the
 provider-specific configuration for this provider.
+
+## Box Format Dowloadable Images
+
+You can view the [list of current Vagrant box
+files](http://docs.brightbox.com/vagrant) on the Brightbox documentation
+site.
 
 ## Configuration
 
