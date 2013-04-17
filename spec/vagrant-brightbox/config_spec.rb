@@ -26,6 +26,7 @@ describe VagrantPlugins::Brightbox::Config do
     its("server_name")     { should be_nil }
     its("region")            { should == "gb1" }
     its("server_groups")   { should == [] }
+    its("user_data")	   { should be nil }
 
     # Access
     its("ssh_private_key_path") { should be_nil }
@@ -35,7 +36,7 @@ describe VagrantPlugins::Brightbox::Config do
   describe "overriding defaults" do
     [:client_id, :secret, :auth_url, :api_url, :username, :password, :account,
      :image_id, :zone, :server_type, :server_name, :region, :server_groups,
-      :ssh_private_key_path, :ssh_username].each do |attribute|
+      :ssh_private_key_path, :ssh_username, :user_data].each do |attribute|
 
       it "should not default #{attribute} if overridden" do
         instance.send("#{attribute}=".to_sym, "foo")
@@ -60,6 +61,7 @@ describe VagrantPlugins::Brightbox::Config do
     let(:config_server_groups)     { ["foo", "bar"] }
     let(:config_zone)     { "foo" }
     let(:config_region)            { "foo" }
+    let(:config_user_data)  { "user_data" }
 
     def set_test_values(instance)
       instance.client_id       = config_client_id
@@ -76,6 +78,7 @@ describe VagrantPlugins::Brightbox::Config do
       instance.region          = config_region
       instance.zone	       = config_zone
       instance.server_groups   = config_server_groups
+      instance.user_data       = config_user_data
     end
 
     it "should raise an exception if not finalized" do
@@ -109,6 +112,7 @@ describe VagrantPlugins::Brightbox::Config do
       its("region")            { should == config_region }
       its("zone")            { should == config_zone }
       its("server_groups")            { should == config_server_groups }
+      its("user_data")       { should == config_user_data }
     end
 
     context "with a specific config set" do
@@ -140,6 +144,7 @@ describe VagrantPlugins::Brightbox::Config do
       its("server_type")     { should == config_server_type }
       its("zone")            { should == config_zone }
       its("server_groups")            { should == config_server_groups }
+      its("user_data")       { should == config_user_data }
     end
 
     describe "inheritance of parent config" do

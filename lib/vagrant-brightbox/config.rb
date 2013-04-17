@@ -83,6 +83,11 @@ module VagrantPlugins
       # @return [String]
       attr_accessor :ssh_username
 
+      # The user data string
+      #
+      # @return [String]
+      attr_accessor :user_data
+
       def initialize(region_specific=false)
         @client_id      = UNSET_VALUE
         @secret  = UNSET_VALUE
@@ -99,6 +104,7 @@ module VagrantPlugins
         @server_groups    = UNSET_VALUE
         @ssh_private_key_path = UNSET_VALUE
         @ssh_username       = UNSET_VALUE
+	@user_data	    = UNSET_VALUE
 
         # Internal state (prefix with __ so they aren't automatically
         # merged)
@@ -183,6 +189,7 @@ module VagrantPlugins
         @server_type = nil if @server_type == UNSET_VALUE
         @server_name = nil if @server_name == UNSET_VALUE
         @zone = nil if @zone == UNSET_VALUE
+	@user_data = nil if @user_data == UNSET_VALUE
 
 
         # The SSH values by default are nil, and the top-level config

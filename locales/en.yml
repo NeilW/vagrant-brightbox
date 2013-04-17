@@ -7,7 +7,9 @@ en:
     finding_image: |-
       Finding image for server...
     launching_server: |-
-      Launching a server with the following settings...
+      Launching a server with the following settings
+    supplied_user_data: |-
+      using supplied user_data string
     not_created: |-
       The server hasn't been created yet. Run `vagrant up` first.
     ready: |-

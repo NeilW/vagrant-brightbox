@@ -30,9 +30,11 @@ module VagrantPlugins
           server_name      = region_config.server_name
           server_type      = region_config.server_type
           server_groups    = region_config.server_groups
+	  user_data	   = region_config.user_data
 
           # Launch!
           env[:ui].info(I18n.t("vagrant_brightbox.launching_server"))
+	  env[:ui].info(I18n.t("vagrant_brightbox.supplied_user_data")) if user_data
           env[:ui].info(" -- Type: #{server_type}") if server_type
           env[:ui].info(" -- Image: #{image_id}") if image_id
           env[:ui].info(" -- Region: #{region}")
@@ -45,12 +47,11 @@ module VagrantPlugins
               :image_id           => image_id,
 	      :name		  => server_name,
               :flavor_id          => server_type,
+	      :user_data	  => user_data,
               :zone_id 		  => zone
             }
 
-            if !server_groups.empty?
-              options[:server_groups] = server_groups
-            end
+	    options[:server_groups] = server_groups unless server_groups.empty?
 
             server = env[:brightbox_compute].servers.create(options)
           rescue Excon::Errors::HTTPStatusError => e
