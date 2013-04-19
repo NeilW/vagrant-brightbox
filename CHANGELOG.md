@@ -1,4 +1,4 @@
-# 0.2.0 (unreleased)
+# 0.2.0 (April 19, 2013)
 
 * Merge from upstream 'vagrant-aws' v0.2.2
 * Ability to specify a timeout for waiting for server to build.
