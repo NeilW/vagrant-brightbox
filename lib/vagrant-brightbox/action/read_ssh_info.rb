@@ -29,10 +29,6 @@ module VagrantPlugins
             return nil
           end
 
-          # Get the configuration
-          region = machine.provider_config.region
-          config = machine.provider_config.get_region_config(region)
-
 	  if use_private_network?(machine.config.vm.networks)
 	    host_name = server.fqdn
 	  elsif use_ipv6_public_network?(machine.config.vm.networks)
@@ -47,9 +43,7 @@ module VagrantPlugins
           # Read the DNS info
           return {
             :host => host_name,
-            :port => 22,
-            :private_key_path => config.ssh_private_key_path,
-            :username => config.ssh_username
+            :port => 22
           }
         end
 

@@ -62,6 +62,12 @@ en:
         message is shown below:
 
         %{message}
+      server_build_timeout: |-
+        The server never became available on Brightbox Cloud. The timeout
+        currently set waiting for the server to build is %{timeout}
+        seconds. Please verify that the server properly boots. If you
+        need more time set the `server_build_timeout` configuration in
+        the Brightbox provider.
       rsync_error: |-
         There was an error when attemping to rsync a share folder.
         Please inspect the error message below for more info.

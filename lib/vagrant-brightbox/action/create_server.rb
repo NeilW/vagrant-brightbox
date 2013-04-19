@@ -63,14 +63,24 @@ module VagrantPlugins
 
           # Wait for the server to build
           env[:metrics]["server_build_time"] = Util::Timer.time do
+	    tries = region_config.server_build_timeout / 2
             env[:ui].info(I18n.t("vagrant_brightbox.waiting_for_build"))
-            retryable(:on => Fog::Errors::TimeoutError, :tries => 30) do
-              # If we're interrupted don't worry about waiting
-              next if env[:interrupted]
+	    begin
+	      retryable(:on => Fog::Errors::TimeoutError, :tries => tries) do
+		# If we're interrupted don't worry about waiting
+		next if env[:interrupted]
 
-              # Wait for the server to be ready
-              server.wait_for(2) { ready? }
-            end
+		# Wait for the server to be ready
+		server.wait_for(2) { ready? }
+	      end
+	    rescue Fog::Errors::TimeoutError
+	      # Delete the server
+	      terminate(env)
+
+	      # Notify the user
+	      raise Errors::ServerBuildTimeout,
+	        timeout: region_config.server_build_timeout
+	    end
           end
 
           @logger.info("Time for server to build: #{env[:metrics]["server_build_time"]}")

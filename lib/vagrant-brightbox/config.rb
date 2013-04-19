@@ -50,6 +50,11 @@ module VagrantPlugins
       # @return [String]
       attr_accessor :zone
 
+      # The timeout to wait for a server to become ready
+      #
+      # @return [Fixnum]
+      attr_accessor :server_build_timeout
+
       # The type of server to launch, such as "nano"
       #
       # @return [String]
@@ -71,18 +76,6 @@ module VagrantPlugins
       # @return [Array<String>]
       attr_accessor :server_groups
 
-      # The path to the SSH private key to use with this server.
-      # This overrides the `config.ssh.private_key_path` variable.
-      #
-      # @return [String]
-      attr_accessor :ssh_private_key_path
-
-      # The SSH username to use with this server. This overrides
-      # the `config.ssh.username` variable.
-      #
-      # @return [String]
-      attr_accessor :ssh_username
-
       # The user data string
       #
       # @return [String]
@@ -98,12 +91,11 @@ module VagrantPlugins
         @account  = UNSET_VALUE
         @image_id                = UNSET_VALUE
         @zone  = UNSET_VALUE
+	@server_build_timeout = UNSET_VALUE
         @server_type      = UNSET_VALUE
 	@server_name	  = UNSET_VALUE
         @region             = UNSET_VALUE
         @server_groups    = UNSET_VALUE
-        @ssh_private_key_path = UNSET_VALUE
-        @ssh_username       = UNSET_VALUE
 	@user_data	    = UNSET_VALUE
 
         # Internal state (prefix with __ so they aren't automatically
@@ -189,13 +181,12 @@ module VagrantPlugins
         @server_type = nil if @server_type == UNSET_VALUE
         @server_name = nil if @server_name == UNSET_VALUE
         @zone = nil if @zone == UNSET_VALUE
+
+	# User data is nil by default
 	@user_data = nil if @user_data == UNSET_VALUE
 
-
-        # The SSH values by default are nil, and the top-level config
-        # `config.ssh` values are used.
-        @ssh_private_key_path = nil if @ssh_private_key_path == UNSET_VALUE
-        @ssh_username = nil if @ssh_username == UNSET_VALUE
+	# The default timeout is 120 seconds
+	@server_build_timeout = 120 if @server_build_timeout == UNSET_VALUE
 
         # Compile our region specific configurations only within
         # NON-REGION-SPECIFIC configurations.
@@ -223,7 +214,7 @@ module VagrantPlugins
       end
 
       def validate(machine)
-        errors = []
+        errors = _detected_errors
 
         errors << I18n.t("vagrant_brightbox.config.region_required") if @region.nil?
 
@@ -242,10 +233,6 @@ module VagrantPlugins
 	      config.secret.nil?
 	  end
 
-          if config.ssh_private_key_path && \
-            !File.file?(File.expand_path(config.ssh_private_key_path, machine.env.root_path))
-            errors << I18n.t("vagrant_brightbox.config.private_key_missing")
-          end
         end
 
         { "Brightbox Provider" => errors }

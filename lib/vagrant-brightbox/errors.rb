@@ -26,6 +26,10 @@ module VagrantPlugins
         error_key(:fog_error)
       end
 
+      class ServerBuildTimeout < VagrantBrightboxError
+        error_key(:server_build_timeout)
+      end
+
       class RsyncError < VagrantBrightboxError
         error_key(:rsync_error)
       end

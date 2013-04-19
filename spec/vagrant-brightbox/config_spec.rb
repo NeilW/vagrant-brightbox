@@ -22,21 +22,19 @@ describe VagrantPlugins::Brightbox::Config do
     # Server
     its("image_id")               { should be_nil }
     its("zone") { should be_nil }
+    its("server_build_timeout") { should == 120 }
     its("server_type")     { should be_nil }
     its("server_name")     { should be_nil }
     its("region")            { should == "gb1" }
     its("server_groups")   { should == [] }
     its("user_data")	   { should be nil }
 
-    # Access
-    its("ssh_private_key_path") { should be_nil }
-    its("ssh_username")      { should be_nil }
   end
 
   describe "overriding defaults" do
     [:client_id, :secret, :auth_url, :api_url, :username, :password, :account,
-     :image_id, :zone, :server_type, :server_name, :region, :server_groups,
-      :ssh_private_key_path, :ssh_username, :user_data].each do |attribute|
+     :image_id, :zone, :server_build_timeout, :server_type, :server_name,
+     :region, :server_groups, :user_data].each do |attribute|
 
       it "should not default #{attribute} if overridden" do
         instance.send("#{attribute}=".to_sym, "foo")

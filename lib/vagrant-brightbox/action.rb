@@ -108,6 +108,19 @@ module VagrantPlugins
         end
       end
 
+      def self.action_ssh_run
+        Vagrant::Action::Builder.new.tap do |b|
+	  b.use ConfigValidate
+	  b.use Call, IsCreated do |env, b2|
+	    if env[:result]
+	      b2.use SSHRun
+	    else
+	      b2.use MessageNotCreated
+	    end
+	  end
+	end
+      end
+
       def self.action_up
         Vagrant::Action::Builder.new.tap do |b|
           b.use ConfigValidate
@@ -123,7 +136,7 @@ module VagrantPlugins
 		end
 	      end
 	    else
-	      b2.use Provision
+	      b2.use TimedProvision
 	      b2.use SyncFolders
 	      b2.use CreateServer
 	      b2.use MapCloudIp
@@ -143,8 +156,6 @@ module VagrantPlugins
 	alias action_suspend action_package
       end
         
-        
-
       # The autoload farm
       action_root = Pathname.new(File.expand_path("../action", __FILE__))
       autoload :ConnectBrightbox, action_root.join("connect_brightbox")
@@ -161,6 +172,7 @@ module VagrantPlugins
       autoload :ForcedHalt, action_root.join("forced_halt")
       autoload :StartServer, action_root.join("start_server")
       autoload :Unsupported, action_root.join("unsupported")
+      autoload :TimedProvision, action_root.join("timed_provision")
     end
   end
 end

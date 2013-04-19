@@ -1,10 +1,10 @@
 # Vagrant Brightbox Provider
 
-This is a [Vagrant](http://www.vagrantup.com) 1.1+ plugin that adds a [Brightbox](http://brightbox.com/)
+This is a [Vagrant](http://www.vagrantup.com) 1.2+ plugin that adds a [Brightbox](http://brightbox.com/)
 provider to Vagrant, allowing Vagrant to control and provision servers in
 the Brightbox Cloud.
 
-**Note:** This plugin requires Vagrant 1.1+,
+**Note:** This plugin requires Vagrant 1.2+,
 
 ## Features
 
@@ -71,13 +71,14 @@ your information where necessary along with your choice of image id
 Vagrant.configure("2") do |config|
   config.vm.box = "dummy"
 
-  config.vm.provider :brightbox do |brightbox|
+  config.vm.provider :brightbox do |brightbox, override|
     brightbox.client_id = "YOUR API CLIENT ID"
     brightbox.secret = "YOUR API SECRET"
-    brightbox.ssh_private_key_path = "PATH TO YOUR PRIVATE KEY"
 
     brightbox.image_id = "img-q6gc8"
-    brightbox.ssh_username = "ubuntu"
+
+    override.ssh.username = "ubuntu"
+    override.ssh.private_key_path = "PATH TO YOUR PRIVATE KEY"
   end
 end
 ```
@@ -120,23 +121,25 @@ site.
 
 This provider exposes quite a few provider-specific configuration options:
 
-* `client_id` - The api access key for accessing Brightbox in the form 'cli-xxxxx'
+* `client_id` - The api access key for accessing Brightbox in the form
+'cli-xxxxx'
 * `secret` - The api secret access code for accessing Brightbox
 * `image_id` - The image id to boot, in the form 'img-xxxxx'
 * `zone` - The zone within the region to launch
   the server. If nil, it will use the default for this account. 
 * `server_type` - The type of server, such as "nano"
 * `region` - The region to start the server in, such as "gb1"
-* `ssh_private_key_path` - The path to the SSH private key. This overrides
-  `config.ssh.private_key_path`.
-* `ssh_username` - The SSH username, which overrides `config.ssh.username`.
 * `security_groups` - An array of security groups for the server.
+* `server_build_timeout` - The number of seconds to wait for the instance
+to become ready on Brightbox Cloud. Defaults to 120 seconds.
 
-If you are the collaborator on a number of accounts you can specify which one you want by setting the following options:
+If you are the collaborator on a number of accounts you can specify
+which one you want by setting the following options:
 
 * `username` - User id in the form 'usr-xxxxx'
 * `password` - The password for the user id
-* `account` - Create servers in the context of this account - in the form 'acc-xxxxx'
+* `account` - Create servers in the context of this account - in the form
+'acc-xxxxx'
 
 These can be set like typical provider-specific configuration:
 
