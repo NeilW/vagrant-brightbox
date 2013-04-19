@@ -1,3 +1,5 @@
+# 0.2.1 (unreleased)
+
 # 0.2.0 (April 19, 2013)
 
 * Merge from upstream 'vagrant-aws' v0.2.2
