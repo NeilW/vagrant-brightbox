@@ -32,6 +32,15 @@ module VagrantPlugins
           server_groups    = region_config.server_groups
 	  user_data	   = region_config.user_data
 
+	  zone_id  = normalise_id(
+	    lambda {env[:brightbox_compute].zones},
+	    zone,
+	    /^zon-/)
+	  server_type_id = normalise_id(
+	    lambda {env[:brightbox_compute].flavors},
+	    server_type,
+	    /^typ-/)
+
           # Launch!
           env[:ui].info(I18n.t("vagrant_brightbox.launching_server"))
 	  env[:ui].info(I18n.t("vagrant_brightbox.supplied_user_data")) if user_data
@@ -41,14 +50,16 @@ module VagrantPlugins
 	  env[:ui].info(" -- Name: #{server_name}") if server_name
           env[:ui].info(" -- Zone: #{zone}") if zone
           env[:ui].info(" -- Server Groups: #{server_groups.inspect}") if !server_groups.empty?
+	  @logger.info(" -- Zone ID: #{zone_id}") if zone_id
+	  @logger.info(" -- Type ID: #{server_type_id}") if server_type_id
 
           begin
             options = {
               :image_id           => image_id,
 	      :name		  => server_name,
-              :flavor_id          => server_type,
+              :flavor_id          => server_type_id,
 	      :user_data	  => user_data,
-              :zone_id 		  => zone
+              :zone_id 		  => zone_id
             }
 
 	    options[:server_groups] = server_groups unless server_groups.empty?
@@ -142,6 +153,23 @@ module VagrantPlugins
           destroy_env[:force_confirm_destroy] = true
           env[:action_runner].run(Action.action_destroy, destroy_env)
         end
+
+	def normalise_id(collection, element, pattern)
+	  @logger.info("Normalising element #{element.inspect}")
+	  @logger.info("Against pattern #{pattern.inspect}")
+	  case element
+	  when pattern, nil
+	    element
+	  else
+	    result = collection.call.find { |f| f.handle == element }
+	    if result
+	      result.id
+	    else
+	      element
+	    end
+	  end
+	end
+
       end
     end
   end
