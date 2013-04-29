@@ -209,6 +209,26 @@ the remote machine over SSH.
 This is good enough for all built-in Vagrant provisioners (shell,
 chef, and puppet) to work!
 
+## Other Examples
+
+### User data
+
+You can specify user data for the server being booted.
+
+```ruby
+Vagrant.configure("2") do |config|
+  # ... other stuff
+
+  config.vm.provider "brightbox" do |brightbox|
+    # Option 1: a single string
+    brightbox.user_data = "#!/bin/bash\necho 'got user data' > /tmp/user_data.log\necho"
+
+    # Option 2: use a file
+    brightbox.user_data = File.read("user_data.txt")
+  end
+end
+```
+
 ## Development
 
 To work on the `vagrant-brightbox` plugin, clone this repository out, and use
