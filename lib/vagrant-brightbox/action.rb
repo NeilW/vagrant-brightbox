@@ -11,15 +11,21 @@ module VagrantPlugins
       # This action is called to destroy the remote machine.
       def self.action_destroy
         Vagrant::Action::Builder.new.tap do |b|
-          b.use ConfigValidate
-          b.use Call, IsCreated do |env, b2|
-            if env[:result]
-	      b2.use ConnectBrightbox
-	      b2.use DeleteServer
+	  b.use Call, DestroyConfirm do |env, b2|
+	    if env[:result]
+	      b2.use ConfigValidate
+	      b2.use Call, IsCreated do |env2, b3|
+		if env2[:result]
+		  b3.use ConnectBrightbox
+		  b3.use DeleteServer
+		else
+		  b3.use MessageNotCreated
+		end
+	      end
 	    else
-              b2.use MessageNotCreated
-            end
-          end
+	      b2.use MessageWillNotDestroy
+	    end
+	  end
         end
       end
 
@@ -123,6 +129,7 @@ module VagrantPlugins
 
       def self.action_up
         Vagrant::Action::Builder.new.tap do |b|
+	  b.use HandleBoxUrl
           b.use ConfigValidate
 	  b.use ConnectBrightbox
           b.use Call, IsCreated do |env, b2|
@@ -165,6 +172,7 @@ module VagrantPlugins
       autoload :IsRunning, action_root.join("is_running")
       autoload :MessageAlreadyCreated, action_root.join("message_already_created")
       autoload :MessageNotCreated, action_root.join("message_not_created")
+      autoload :MessageWillNotDestroy, action_root.join("message_will_not_destroy")
       autoload :ReadSSHInfo, action_root.join("read_ssh_info")
       autoload :ReadState, action_root.join("read_state")
       autoload :SyncFolders, action_root.join("sync_folders")

@@ -28,6 +28,9 @@ en:
       Stopping server...
     unsupported: |-
       This command is not supported on the Brightbox Provider
+    will_not_destroy: |-
+      The server '%{name}' will not be destroyed, since the confirmation
+      was declined.
 
     config:
       region_required: |-
