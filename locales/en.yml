@@ -1,7 +1,7 @@
 en:
   vagrant_brightbox:
-    already_created: |-
-      The server is already created.
+    already_status: |-
+      The server is already %{status}.
     deleting_server: |-
       Deleting server...
     finding_image: |-
