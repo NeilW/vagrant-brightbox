@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'bundler/setup'
+Bundler::GemHelper.install_tasks
 require 'rspec/core/rake_task'
 
 # Immediately sync all stdout so that tools like buildbot can

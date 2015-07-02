@@ -1,3 +1,9 @@
+# 0.3.0 (July 2, 2015)
+* Refresh dependencies
+* Merge from upstream 'vagrant-aws' v0.6.0
+* Don't sync folders on a provision
+* Check for outdated box file
+
 # 0.2.1 (unreleased)
 
 * Confirm before destroying server

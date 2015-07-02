@@ -1,4 +1,4 @@
-require "fog"
+require "fog/brightbox"
 require "log4r"
 
 module VagrantPlugins

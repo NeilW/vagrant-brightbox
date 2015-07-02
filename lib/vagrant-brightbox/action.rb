@@ -8,6 +8,17 @@ module VagrantPlugins
       # Include the built-in modules so we can use them as top-level things.
       include Vagrant::Action::Builtin
 
+      def self.action_package
+        Vagrant::Action::Builder.new.tap do |b|
+          b.use Unsupported
+        end
+      end
+
+      class << self
+        alias action_resume action_package
+        alias action_suspend action_package
+      end
+
       # This action is called to halt the server - gracefully or by force.
       def self.action_halt
         Vagrant::Action::Builder.new.tap do |b|
@@ -37,6 +48,7 @@ module VagrantPlugins
                 if env2[:result]
                   b3.use ConnectBrightbox
                   b3.use DeleteServer
+                  b3.use ProvisionerCleanup if defined?(ProvisionerCleanup)
                 else
                   b3.use MessageNotCreated
                 end
@@ -55,7 +67,6 @@ module VagrantPlugins
           b.use Call, IsCreated do |env, b2|
             if env[:result]
               b2.use Provision
-              b2.use SyncFolders
             else
               b2.use MessageNotCreated
             end
@@ -114,15 +125,16 @@ module VagrantPlugins
 
       def self.action_prepare_boot
         Vagrant::Action::Builder.new.tap do |b|
-          b.use TimedProvision
-          b.use SyncFolders
+          b.use Provision
+	  b.use SyncedFolders
         end
       end
 
       def self.action_up
         Vagrant::Action::Builder.new.tap do |b|
-          b.use HandleBoxUrl
+          b.use HandleBox
           b.use ConfigValidate
+	  b.use BoxCheckOutdated
           b.use ConnectBrightbox
           b.use Call, IsCreated do |env1, b1|
             if env1[:result]
@@ -157,6 +169,7 @@ module VagrantPlugins
                 if env2[:result]
                   b3.use action_up
                 else
+		  # TODO we couldn't reach :stopped, what now?
                 end
               end
             else
@@ -166,33 +179,22 @@ module VagrantPlugins
         end
       end
 
-      def self.action_package
-        Vagrant::Action::Builder.new.tap do |b|
-          b.use Unsupported
-        end
-      end
-
-      class << self
-        alias action_resume action_package
-        alias action_suspend action_package
-      end
         
       # The autoload farm
       action_root = Pathname.new(File.expand_path("../action", __FILE__))
       autoload :ConnectBrightbox, action_root.join("connect_brightbox")
-      autoload :CreateServer, action_root.join("create_server")
-      autoload :DeleteServer, action_root.join("delete_server")
-      autoload :ForcedHalt, action_root.join("forced_halt")
       autoload :IsCreated, action_root.join("is_created")
       autoload :IsStopped, action_root.join("is_stopped")
-      autoload :MapCloudIp, action_root.join("map_cloud_ip")
       autoload :MessageAlreadyCreated, action_root.join("message_already_created")
       autoload :MessageNotCreated, action_root.join("message_not_created")
       autoload :MessageWillNotDestroy, action_root.join("message_will_not_destroy")
       autoload :ReadSSHInfo, action_root.join("read_ssh_info")
       autoload :ReadState, action_root.join("read_state")
+      autoload :CreateServer, action_root.join("create_server")
+      autoload :DeleteServer, action_root.join("delete_server")
+      autoload :ForcedHalt, action_root.join("forced_halt")
+      autoload :MapCloudIp, action_root.join("map_cloud_ip")
       autoload :StartServer, action_root.join("start_server")
-      autoload :SyncFolders, action_root.join("sync_folders")
       autoload :TimedProvision, action_root.join("timed_provision")
       autoload :Unsupported, action_root.join("unsupported")
       autoload :WaitForState, action_root.join("wait_for_state")
