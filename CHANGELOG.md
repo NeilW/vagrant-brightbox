@@ -1,3 +1,6 @@
+# 0.3.1 (July 2, 2015)
+* Gem FUBAR
+
 # 0.3.0 (July 2, 2015)
 * Refresh dependencies
 * Merge from upstream 'vagrant-aws' v0.6.0
